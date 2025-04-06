@@ -6,6 +6,8 @@ app = Flask(__name__)
 @app.route('/transcribe', methods=['POST'])
 def animate():
     # Get the audio file from the request
+
+    # don't really need this since we use the mic to get input directly and the backend is alreadying handling that
     audio_file = request.files['audio']
     
     # Save the audio file to a temporary location

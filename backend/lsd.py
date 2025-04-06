@@ -1,7 +1,6 @@
 import pyaudio, pygame
 import numpy as np
-import librosa
-import time, os, random
+import time, os
 import asyncio
 import soundfile as sf
 from colorsys import hsv_to_rgb
@@ -195,16 +194,16 @@ class LSD:
                 if res:
                     label1, label2, score1, score2 , transcript = res[0][0], res[1][0], res[0][1], res[1][1], res[1][2]
                     self.sentiment2vec(label1, label2, score1, score2)
+                    print(f"emo_vector: {self.upcoming_emo_vec}")
+                    print(f"Transcript: {transcript}")
                 self.analysis_task = None
 
-            print(self.emo_vec)
-            alpha = 0.05
-            self.ttime += 0.01
-
             #lerp
+            alpha = 0.05
             self.emo_vec = [(1 - alpha) * current + alpha * target for current, target in zip(self.emo_vec, self.upcoming_emo_vec)]
 
             #this is actually kind trippy
+            self.ttime += 0.01  #timer
             color, speed, size = self.vec2param(self.emo_vec)
             self.ttime += speed
             self.hue_shift = self.hue_shift + 0.05
