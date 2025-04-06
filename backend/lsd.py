@@ -7,7 +7,6 @@ import soundfile as sf
 import os
 import scipy.signal
 from groq import Groq
-
 from transformers import pipeline
 
 class LSD:
@@ -65,7 +64,7 @@ class LSD:
         os.remove(filename)
         # print(transcription.text)
 
-        sentiment_pipeline = pipeline("sentiment-analysis", model=self.text_model, tokenizer=self.text_model, device=0)
+        sentiment_pipeline = pipeline("sentiment-analysis", model=self.text_model, tokenizer=self.text_model, device=-1)
         sentiment = sentiment_pipeline(transcription.text)
         return sentiment[0]['label'], sentiment[0]['score'], transcription.text
 
@@ -144,4 +143,3 @@ if __name__ == "__main__":
     #             timestamp_granularities = ["word", "segment"],
     #             response_format="verbose_json",)
     # print(transcription.text)
-     

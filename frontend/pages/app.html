@@ -1,34 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web App</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Talk to Your Friend</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <header>
-        <nav>
-            <button onclick="navigateTo('home.html')">Home</button>
-        </nav>
-    </header>
-    <div class="workspace-container" >
-        <div class="workspace" bordersize="1">
-            <h1>Workspace Area</h1>
-            <div class="workspace-content">
-                <p>This is the workspace area.</p>
-            </div>
-            <div class="transcript-log">
-                <h3>Transcript Log</h3>
-                <p>No transcript available yet.</p>
-            </div>
-            <div class="workspace-buttons">
-                <button onclick="startRecording()">Record</button>
-                <button onclick="stopRecording()">Stop</button>
-                <button onclick="deleteRecording()">Delete</button>
-            </div>
-        </div>
+<body class="bg-white text-gray-900 p-4">
+  <div class="flex flex-col h-screen relative">
+    <!-- Return Home Button -->
+    <a href="/" class="absolute top-4 right-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium transition">
+      Return Home
+    </a>
+
+    <!-- Restart Buttons (hidden by default) -->
+    <div id="restart-controls" class="fixed bottom-4 left-4 space-x-2 hidden">
+      <button onclick="restartConversation()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">
+        Restart Conversation
+      </button>
+      <button onclick="restartStatement()" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">
+        Restart Statement
+      </button>
     </div>
+
+    <h1 class="text-3xl font-bold mb-4">Your Imaginary Friend</h1>
+
+    <!-- Start Recording Button -->
+    <button onclick="recordAudio()" class="mb-4 w-fit bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+      Start Speaking
+    </button>
+
+    <div class="flex flex-1 space-x-4">
+      <!-- Voice Diagram Section -->
+      <div class="w-1/2 bg-gray-100 rounded-lg p-4">
+        <h2 class="text-xl font-semibold mb-2">Voice Diagram</h2>
+        <div id="diagram" class="h-full flex flex-col justify-center items-center text-gray-500 space-y-2">
+          <p>Emotion Intensity:</p>
+          <div id="intensity-bar" class="w-64 h-6 bg-gray-300 rounded">
+            <div id="intensity-fill" class="h-6 bg-green-500 rounded" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transcription Log -->
+      <div class="w-1/2 bg-gray-50 rounded-lg p-4 overflow-y-auto">
+        <h2 class="text-xl font-semibold mb-2">Conversation</h2>
+        <div id="log" class="space-y-2 text-sm">
+          <!-- Conversation messages will appear here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    function recordAudio() {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        audioChunks = [];
+
+        showRestartControls();
+
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunks, { type: 'audio/wav' });
+          const formData = new FormData();
+          formData.append('audio', blob, 'recording.wav');
+
+          fetch('/analyze_audio', {
+            method: 'POST',
+            body: formData
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+              hideRestartControls();
+              return;
+            }
+
+            const log = document.getElementById("log");
+            log.innerHTML += `<div><strong>You:</strong> ${data.transcript}</div>`;
+            log.innerHTML += `<div><strong>Emotion Vector:</strong> ${data.emotion_vector.map(e => e.toFixed(2)).join(', ')}</div>`;
+            log.innerHTML += `<div><strong>AI Friend:</strong> ${data.ai_response}</div>`;
+
+            updateDiagram(data.emotion_vector[2]);
+            speakResponse(data.ai_response);
+            hideRestartControls();
+          });
+
+          audioChunks = [];
+        };
+
+        // Stop recording after 4 seconds to match the backend interval
+        setTimeout(() => {
+          if (mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+          }
+        }, 4000);
+      });
+    }
+
+    function updateDiagram(intensity) {
+      const fill = document.getElementById("intensity-fill");
+      const percent = Math.min(100, Math.max(0, intensity * 100));
+      fill.style.width = percent + "%";
+    }
+
+    function restartConversation() {
+      document.getElementById("log").innerHTML = '';
+      updateDiagram(0);
+    }
+
+    function restartStatement() {
+      alert("Statement restarted. Please speak again.");
+    }
+
+    function showRestartControls() {
+      document.getElementById("restart-controls").classList.remove("hidden");
+    }
+
+    function hideRestartControls() {
+      document.getElementById("restart-controls").classList.add("hidden");
+    }
+
+    function speakResponse(text) {
+      const synth = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.pitch = 1.2;
+      utterance.rate = 1;
+      synth.speak(utterance);
+    }
+  </script>
 </body>
 </html>

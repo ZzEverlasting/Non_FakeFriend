@@ -1,33 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Imaginary Friend - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <header>
-        <h1>Non-Fake Friend!</h1>
-    </header>
-    <header>
-        <nav>
-            <button onclick="navigateTo('app.html')">App</button>
-        </nav>
-    </header>
-    <main>
-        <section id="intro">
-            <h2>Introduction</h2>
-            <p>Welcome to Non-Fake Friend!</p>
-        </section>
-        <section id="bio">
-            <h2>About Us</h2>
-            <p>We are a team dedicated to providing the best user experience. Our mission is to make your life easier and more enjoyable through our application.</p>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2025 Our Web Application. All rights reserved.</p>
-    </footer>
+<body class="bg-gray-100 text-gray-800 p-8">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-4xl font-bold mb-4">Welcome to Your Imaginary Friend</h1>
+    <p class="mb-4">This web app lets you talk to an AI-powered imaginary friend who listens, responds, and reacts to your voice.</p>
+    <h2 class="text-2xl font-semibold mt-6">How It Works:</h2>
+    <ul class="list-disc list-inside mt-2 mb-4">
+      <li>Click "Start Speaking" and talk into your microphone.</li>
+      <li>Your speech is recorded, transcribed, and analyzed.</li>
+      <li>An emotion vector is calculated and displayed as an intensity bar.</li>
+      <li>An AI friend generates a thoughtful response that is displayed and spoken back to you.</li>
+    </ul>
+    <a href="/app" class="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Start Now</a>
+  </div>
 </body>
 </html>
