@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import librosa
 import time
+from groq import Groq
 
 from transformers import pipeline
 
@@ -13,9 +14,15 @@ class LSD:
         pygame.init()
         self.screen = pygame.display.set_mode((640, 480))
         self.running = True
+
+        #groq client
+        self.client = Groq(api_key="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")
+
+        #audio features
         self.audio_classifier = pipeline("audio-classification", model="superb/wav2vec2-base-superb-er")
         self.audio_buffer = np.array([], dtype=np.float32)
         self.rate = 44100
+
         self.now_time = time.time()
         self.interval = 2 # this interval might be too short for not async
 
@@ -25,6 +32,11 @@ class LSD:
         result = self.audio_classifier(segment, sampling_rate=self.rate)
         self.now_time = time.time()
         print(result)
+
+    def classify_content(self):
+        transcription = self.client.audio.transcriptions.create()
+
+
 
     def run(self):
         while self.running:
