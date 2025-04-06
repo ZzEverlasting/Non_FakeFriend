@@ -5,22 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web App</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
+    <header>
+        <nav>
+            <button onclick="navigateTo('home.html')">Home</button>
+        </nav>
+    </header>
     <div class="workspace-container" >
         <div class="workspace" bordersize="1">
             <h1>Workspace Area</h1>
             <div class="workspace-content">
                 <p>This is the workspace area.</p>
-        </div>
-        <div class="transcript-log">
-            <h3>Transcript Log</h3>
-            <p>No transcript available yet.</p>
-        </div>
-        <div class="workspace-buttons">
-            <button>Record</button>
-            <button>Stop</button>
-            <button>Delete</button>
+            </div>
+            <div class="transcript-log">
+                <h3>Transcript Log</h3>
+                <p>No transcript available yet.</p>
+            </div>
+            <div class="workspace-buttons">
+                <button onclick="startRecording()">Record</button>
+                <button onclick="stopRecording()">Stop</button>
+                <button onclick="deleteRecording()">Delete</button>
+            </div>
         </div>
     </div>
 </body>
