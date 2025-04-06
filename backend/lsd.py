@@ -1,5 +1,11 @@
 import pyaudio, pygame
 import numpy as np
+import torch
+import librosa
+import time
+
+from datasets import load_dataset
+from transformers import pipeline
 
 class LSD:
     def __init__(self):
@@ -8,6 +14,11 @@ class LSD:
         pygame.init()
         self.screen = pygame.display.set_mode((640, 480))
         self.running = True
+        self.classifier = pipeline("audio-classification", model="superb/wav2vec2-base-superb-er")
+        self.audio_buffer = np.array([], dtype=np.float32)
+        self.rate = 44100
+        self.now_time = time.time()
+        self.interval = 1.5
 
     def run(self):
         while self.running:
@@ -16,20 +27,18 @@ class LSD:
                     self.running = False
 
             data = self.stream.read(1024)
-            # Process audio data here
+            # Process audio data here, this is the audio stream
             audio_data = np.frombuffer(data, dtype=np.int16)
+            self.audio_buffer = np.concatenate((self.audio_buffer, audio_data))
 
-            volume = np.abs(audio_data).mean() / 32768.0
+            if time.time() - self.now_time > self.interval and len(self.audio_buffer) > self.rate:  #get enough audio to classify
+                segment = self.audio_buffer[-self.rate:]    #get last 44100 samples
+                result = self.classifier(segment, sampling_rate=self.rate)
+                self.now_time = time.time()
+                print(result)
 
-            bar_height = int(volume * self.screen.get_height())
             self.screen.fill((0, 0, 0))  # Clear screen
-            pygame.draw.rect(self.screen, (0, 255, 0), 
-                             (self.screen.get_width() // 2 - 50, 
-                              self.screen.get_height() - bar_height, 
-                              100, 
-                              bar_height))
             pygame.display.flip()
-
 
         self.cleanup()
 
@@ -38,6 +47,8 @@ class LSD:
         self.stream.close()
         self.audio.terminate()
         pygame.quit()
+
+
 
 
 if __name__ == "__main__":
