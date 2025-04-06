@@ -14,6 +14,7 @@ class LSD:
     def __init__(self):
         self.audio = pyaudio.PyAudio()
         self.rate = 16000
+        self.threshold = 200
         self.stream = self.audio.open(format=pyaudio.paInt16, channels=1, rate=self.rate, input=True, frames_per_buffer=1024)
         pygame.init()
 
@@ -31,7 +32,9 @@ class LSD:
         self.audio_buffer = np.array([], dtype=np.int16)
 
         self.now_time = time.time()
-        self.interval = 3 # this interval might be too short for not async
+
+        # tweak this interval to get more or less audio for classification
+        self.interval = 3 
 
 
     async def classify_audio(self, segment):
@@ -40,6 +43,7 @@ class LSD:
         result = await asyncio.to_thread(self.audio_classifier, filename, sampling_rate=self.rate)
         os.remove(filename)
         print(result)
+        return
 
     async def classify_content(self, segment):
         filename = "temp.wav"
@@ -55,18 +59,29 @@ class LSD:
             )
         os.remove(filename)
         print(transcription.text)
+        return
 
 
     async def audio_processing(self):
-        if len(self.audio_buffer) > self.rate * 10:  #get enough audio to classify
-            segment = self.audio_buffer[-self.rate * 10:]    #get last #RATE samples
-            await asyncio.gather(
-                self.classify_audio(segment),
-                self.classify_content(segment)
-            )
-            # self.now_time = time.time()
-            self.audio_buffer = []
+        if time.time() - self.now_time > self.interval:  #get enough audio to classify
+            self.now_time = time.time()
+            if len(self.audio_buffer) > self.rate * self.interval:
+                segment = self.audio_buffer[-self.rate * self.interval:]    #get last #RATE samples
+                self.audio_buffer = []
 
+                if np.mean(np.abs(segment)) < self.threshold:
+                    print("Segment too quiet, skipping...")
+                    return
+            
+                await asyncio.gather(
+                    self.classify_audio(segment),
+                    self.classify_content(segment)
+                )
+        return
+            
+            
+    def sentiment_function():
+        return
 
 
     def run(self):
@@ -87,12 +102,14 @@ class LSD:
             pygame.display.flip()
 
         self.cleanup()
+        return
 
     def cleanup(self):
         self.stream.stop_stream()
         self.stream.close()
         self.audio.terminate()
         pygame.quit()
+        return
 
 
 
@@ -110,5 +127,4 @@ if __name__ == "__main__":
     #             timestamp_granularities = ["word", "segment"],
     #             response_format="verbose_json",)
     # print(transcription.text)
-
      
