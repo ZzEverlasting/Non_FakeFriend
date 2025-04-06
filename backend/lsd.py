@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import librosa
 import time
+import asyncio
 from groq import Groq
 
 from transformers import pipeline
@@ -27,18 +28,27 @@ class LSD:
         self.interval = 2 # this interval might be too short for not async
 
 
-    def classify_audio(self):
-        segment = self.audio_buffer[-self.rate:]    #get last 44100 samples
+    async def classify_audio(self, segment):
         result = self.audio_classifier(segment, sampling_rate=self.rate)
-        self.now_time = time.time()
         print(result)
 
-    def classify_content(self):
-        transcription = self.client.audio.transcriptions.create()
+    async def classify_content(self, segment):
+        return
+
+    async def audio_processing(self):
+        if time.time() - self.now_time > self.interval and len(self.audio_buffer) > self.rate:  #get enough audio to classify
+            segment = self.audio_buffer[-self.rate:]    #get last 44100 samples
+            await asyncio.gather(
+                self.classify_audio(segment),
+                self.classify_content(segment)
+            )
+            self.now_time = time.time()
+            self.audio_buffer = []
 
 
 
     def run(self):
+        loop = asyncio.get_event_loop()
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -47,11 +57,9 @@ class LSD:
             data = self.stream.read(1024)
             # Process audio data here, this is the audio stream
             audio_data = np.frombuffer(data, dtype=np.int16)
-            self.audio_buffer = np.concatenate((self.audio_buffer, audio_data))
+            self.audio_buffer = np.concatenate((self.audio_buffer, audio_data)) #gather clips
 
-            if time.time() - self.now_time > self.interval and len(self.audio_buffer) > self.rate:  #get enough audio to classify
-                self.classify_audio(self)
-                self.classify_content(self)
+            loop.run_until_complete(self.audio_processing())
 
             self.screen.fill((0, 0, 0))  # Clear screen
             pygame.display.flip()
