@@ -1,11 +1,13 @@
 import pyaudio, pygame
 import numpy as np
 import time, os
-import asyncio
+import asyncio, io
 import soundfile as sf
 from colorsys import hsv_to_rgb
 from groq import Groq
 from transformers import pipeline
+from PIL import Image
+
 
 class LSD:
     def __init__(self):
@@ -19,7 +21,7 @@ class LSD:
 
         #tweakables
         self.rate = 16000   #good sample rate for whisper but idk how good it actualy is
-        self.threshold = 50    # volume threshold for audio classification lower = more sensitive
+        self.threshold = 10    # volume threshold for audio classification; lower = more sensitive
         self.interval = 4         # tweak this interval (in sec) to get more or less audio for classification
 
         #fit for input stream
@@ -27,6 +29,7 @@ class LSD:
 
         
         #pygame window
+        os.environ["SDL_VIDEODRIVER"] = "dummy" 
         pygame.init()
         
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -47,6 +50,7 @@ class LSD:
         self.ttime=0
         self.emo_vec = [0.0, 0.0, 0.0]
         self.upcoming_emo_vec = [0.0, 0.0, 0.0]
+        self.transcript= ""
 
         self.analysis_task = None
         self.new_data_ready = False
@@ -191,10 +195,10 @@ class LSD:
             if self.analysis_task and self.analysis_task.done():
                 res = self.analysis_task.result()
                 if res:
-                    label1, label2, score1, score2 , transcript = res[0][0], res[1][0], res[0][1], res[1][1], res[1][2]
+                    label1, label2, score1, score2 , self.transcript = res[0][0], res[1][0], res[0][1], res[1][1], res[1][2]
                     self.sentiment2vec(label1, label2, score1, score2)
-                    print(f"emo_vector: {self.upcoming_emo_vec}")
-                    print(f"Transcript: {transcript}")
+                    print(f"emo_vector: [hype: {self.upcoming_emo_vec[0]}, attitude: {self.upcoming_emo_vec[1]}, intensity: {self.upcoming_emo_vec[2]}")
+                    print(f"Transcript: {self.transcript}")
                 self.analysis_task = None
 
             #lerp
@@ -223,6 +227,13 @@ class LSD:
         self.cleanup()
         return
 
+    def get_frame(self):
+        surface = pygame.display.get_surface()
+        data = pygame.image.tostring(surface, 'RGB')
+        image = Image.frombytes('RGB', (self.width, self.height), data)
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG')
+        return buf.getvalue()
 
     def cleanup(self):
         self.stream.stop_stream()
@@ -231,11 +242,13 @@ class LSD:
         pygame.quit()
         return
 
+lsd = LSD()
 
-
-if __name__ == "__main__":
-    lsd = LSD()
+def lsd_run():
     asyncio.run(lsd.run())
+
+if __name__ == '__main__':
+    lsd_run()
 
     #test groq client in static mode
     # client = Groq(api_key="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")

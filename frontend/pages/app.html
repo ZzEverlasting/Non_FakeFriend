@@ -26,19 +26,20 @@
     <h1 class="text-3xl font-bold mb-4">Your Imaginary Friend</h1>
 
     <!-- Start Recording Button -->
-    <button onclick="recordAudio()" class="mb-4 w-fit bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+    <!-- <button onclick="recordAudio()" class="mb-4 w-fit bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
       Start Speaking
-    </button>
+    </button> -->
 
     <div class="flex flex-1 space-x-4">
       <!-- Voice Diagram Section -->
       <div class="w-1/2 bg-gray-100 rounded-lg p-4">
         <h2 class="text-xl font-semibold mb-2">Voice Diagram</h2>
         <div id="diagram" class="h-full flex flex-col justify-center items-center text-gray-500 space-y-2">
-          <p>Emotion Intensity:</p>
+            <img id="visual-stream" src="/video_stream" alt="Live Visual" class="rounded border" />
+          <!-- <p>Emotion Intensity:</p>
           <div id="intensity-bar" class="w-64 h-6 bg-gray-300 rounded">
             <div id="intensity-fill" class="h-6 bg-green-500 rounded" style="width: 0%;"></div>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -47,6 +48,7 @@
         <h2 class="text-xl font-semibold mb-2">Conversation</h2>
         <div id="log" class="space-y-2 text-sm">
           <!-- Conversation messages will appear here -->
+
         </div>
       </div>
     </div>
@@ -55,6 +57,22 @@
   <script>
     let mediaRecorder;
     let audioChunks = [];
+
+
+    setInterval(()=>{
+        fetch('/transcript')
+        .then(res => res.json())
+        .then(data => {
+            if (data.transcript) {
+                const ts = document.getElementById("log");
+                const div = document.createElement("div");
+                div.textContent = data.transcript;
+                ts.appendChild(div)
+                ts.scrollTop = ts.scrollHeight;
+            }}).catch(err => console.error("Fetch error:", err));
+        }, 4000
+    )
+
 
     function recordAudio() {
       navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
