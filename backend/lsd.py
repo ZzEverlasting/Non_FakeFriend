@@ -20,7 +20,7 @@ class LSD:
 
         #tweakables
         self.rate = 16000   #good sample rate for whisper but idk how good it actualy is
-        self.threshold = 0    # volume threshold for audio classification lower = more sensitive
+        self.threshold = 50    # volume threshold for audio classification lower = more sensitive
         self.interval = 4         # tweak this interval (in sec) to get more or less audio for classification
 
         #fit for input stream
@@ -139,13 +139,13 @@ class LSD:
         center_y = self.height // 2
         rmax = max(self.width, self.height)
 
-        wobble_speed = 0.2 + hype * 0.2 + intensity * 0.2
-        wobble_size = 5 + intensity * 12
+        wobble_speed = 0.3 + hype * 0.2 + intensity * 0.2
+        wobble_size = 7 + intensity * 12
         petal_count = int(petals + hype * 5)
         layer_depth = int(layers + intensity * 2)
 
         for layer in range(layer_depth):
-            radius = (layer + spacing) * (rmax // (layer_depth + spacing))
+            radius = (layer + spacing*0.9) * (rmax // (layer_depth + spacing))
             for i in range(petal_count):
                 angle = (2 * np.pi / petal_count) * i + t * wobble_speed
                 x = int(center_x + np.cos(angle) * radius)
@@ -205,15 +205,18 @@ class LSD:
             #this is actually kind trippy
             self.ttime += 0.01  #timer
             color, speed, size = self.vec2param(self.emo_vec)
+            size+=2
             self.ttime += speed
             self.hue_shift = self.hue_shift + 0.05
             for i in range(3):
                 self.hue_shift = i * 0.2
-                self.draw_spinner(self.ttime + i * 0.5, self.emo_vec, color, 0.8, size, self.hue_shift + 5*(i-1), petals=16, layers=5)
+                self.draw_spinner(self.ttime + i * 0.5, self.emo_vec, color, 0.6, size, self.hue_shift + 5*(i-1), petals=16, layers=5)
                 self.hue_shift = i * 0.4
-                self.draw_spinner(self.ttime + i * 0.8, self.emo_vec, color, 0.5, size, self.hue_shift + 5*(i-1), petals=14, layers=4)
+                self.draw_spinner(self.ttime + i * 0.8, self.emo_vec, color, 0.4, size, self.hue_shift + 5*(i-1), petals=14, layers=4)
                 self.hue_shift = i * 0.7
                 self.draw_spinner(self.ttime + i * 0.2, self.emo_vec, color, 0.2, size, self.hue_shift + 5*(i-1), petals=12, layers=3)
+                self.hue_shift = i * 0.55
+                self.draw_spinner(self.ttime + i * 0.2, self.emo_vec, color, 0.8, size, self.hue_shift + 5*(i-1), petals=10, layers=2)
 
             pygame.display.flip()
             await asyncio.sleep(0.001)
