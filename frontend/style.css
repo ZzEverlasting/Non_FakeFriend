@@ -2,10 +2,6 @@
 body {
     margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     color: #333;
@@ -74,25 +70,26 @@ a {
 .workspace-container {
     display: flex;
     flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
     gap: 20px;
-    width: 90%;
-    max-width: 1200px;
-    height: 80%;
-    border: 5px solid #ccc;
     padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    width: 100%;
+    height: 100vh;
 }
 
 .workspace {
     flex: 2;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    border: 1px solid #ccc;
-    padding: 20px;
-    box-sizing: border-box;
+    justify-content: space-between;
 }
 
 .workspace-buttons {
@@ -105,15 +102,25 @@ a {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    transition: background-color 0.3s;
+}
+
+.workspace-buttons button:hover {
+    background-color: #e0e0e0;
 }
 
 .transcript-log {
     flex: 1;
-    border: 1px solid #ccc;
+    border: 2px solid #ccc;
+    border-radius: 8px;
     padding: 20px;
-    box-sizing: border-box;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-    background-color: #fafafa;
+    max-height: 80vh;
 }
 
 .transcript-log h3 {
@@ -134,7 +141,8 @@ button {
 }
 
 button:hover {
-    background-color: #3700b3;
+    background-color: #3ce409;
+    cursor: finger;
 }
 
 button:disabled {
@@ -146,7 +154,8 @@ button:disabled {
 @media (max-width: 768px) {
     .workspace-container {
         flex-direction: column;
-        height: auto;
+        align-items: center;
+        gap: 10px;
     }
 
     .workspace,

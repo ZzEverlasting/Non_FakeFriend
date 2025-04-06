@@ -6,7 +6,7 @@ function navigateTo(page) {
 }
 
 // Event listener for transitioning to "app.html"
-document.getElementById('goToApp').addEventListener('click', function () {
+document.getElementById('App').addEventListener('click', function () {
     navigateTo('app.html');
 });
 
