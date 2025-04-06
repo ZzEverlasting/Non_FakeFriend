@@ -115,42 +115,56 @@ class LSD:
     #turn emo vec into params for the animation
     def vec2param(self, emo_vec):
         hype, attitude, intensity = emo_vec
-        hue = (attitude + 1) / 2  # 0 to 1
-        color = hsv_to_rgb(hue, 1.0, min(1.0, 0.5 + intensity / 2))  # brighter with intensity
+        hue = (attitude + 1) / 2  # 0 to 1 clamp?
+        color = hsv_to_rgb(hue, min(1.0, 0.5 + intensity / 2), min(1.0, 0.5 + intensity / 2))  # brighter with intensity
         color = tuple(int(c * 255) for c in color)  # convert to RGB 0–255
-        speed = 0.01 + hype * 0.2
-        wobble = 5 + hype * 20
-        fractal_depth = int(2 + intensity * 2.5)
-        trails = int(10 + intensity * 15)
-        return color, wobble, speed, fractal_depth  #, trails
+        speed = 0.01 + 0.2*hype
+        return color, speed  #, trails
     
 
-    def draw_spiral(self, t, color, wobble):
-        for i in range(200):
-            angle = i * 0.1 + t
-            radius = 100 + np.sin(i * 0.3 + t) * wobble
-            x = int(self.width/2 + np.cos(angle) * radius)
-            y = int(self.height/2 + np.sin(angle) * radius)
-            pygame.draw.circle(self.screen, color, (x, y), 3)
+    def draw_kaleido_flower(self, t, emo_vec, petals=12, layers=4):
+        hype, attitude, intensity = emo_vec
+        center_x = self.width // 2
+        center_y = self.height // 2
+        rmax = max(self.width, self.height)
 
+        wobble_speed = 0.2 + hype * 0.3
+        wobble_size = 5 + hype * 10
+        base_size = 8 + intensity * 6
+        petal_count = int(petals + intensity * 5)
+        layer_depth = int(layers + intensity * 2)
 
-    def draw_fractal(self, x, y, angle, depth, color):
-        if depth == 0:
-            return
-        length = 50 * depth
-        x2 = x + int(np.cos(angle) * length)
-        y2 = y + int(np.sin(angle) * length)
-        pygame.draw.line(self.screen, color, (x, y), (x2, y2), 1)
-        angle_offset = 0.3 + random.random() * 0.2
-        self.draw_fractal(x2, y2, angle - angle_offset, depth - 1, color)
-        self.draw_fractal(x2, y2, angle + angle_offset, depth - 1, color)
+        for layer in range(layer_depth):
+            radius = (layer + 1) * (rmax // (layer_depth + 1))
+            for i in range(petal_count):
+                angle = (2 * np.pi / petal_count) * i + t * wobble_speed
+                x = int(center_x + np.cos(angle) * radius)
+                y = int(center_y + np.sin(angle) * radius)
 
+                size = int(base_size + np.sin(t + i + layer) * wobble_size)
+                hue_offset = (attitude + i / petal_count) % 1.0
+                color = self.get_trippy_color(self.emo_vec)
 
-    def draw_lissajous(self, t, color):
-        for i in range(300):
-            x = int(self.width/2 + np.sin(3 * t + i * 0.02) * 200)
-            y = int(self.height/2 + np.sin(4 * t + i * 0.03) * 200)
-            pygame.draw.circle(self.screen, color, (x, y), 2)
+                pygame.draw.circle(self.screen, color, (x, y), size)
+    
+    def get_trippy_color(self, emo_vec):
+        # Hype = red channel (0 to 1)
+        hype, attitude, intensity = emo_vec
+        r = min(1.0, 0.4 + hype)
+
+        # Attitude = saturation (less attitude = grayer)
+        saturation = max(0.1, attitude + 1e-5)  # avoid zero
+        g = r * saturation
+        b = r * saturation
+
+        # Intensity = darkness (1.0 = no dark, 0.0 = fully black)
+        darkness = max(0.0, 1.0 - intensity * 0.7)
+        r *= darkness
+        g *= darkness
+        b *= darkness
+
+        return int(r * 255), int(g * 255), int(b * 255)
+
 
 
     async def run(self):
@@ -176,16 +190,18 @@ class LSD:
             print(self.emo_vec)
             alpha = 0.05
             self.ttime += 0.01
-            self.emo_vec = [(1 - alpha) * cur + alpha * tgt for cur, tgt in zip(self.emo_vec, self.upcoming_emo_vec)]
+
+            #lerp
+            self.emo_vec = [(1 - alpha) * current + alpha * target for current, target in zip(self.emo_vec, self.upcoming_emo_vec)]
 
 
-            color, wobble, speed, depth = self.vec2param(self.emo_vec)
+            color, speed = self.vec2param(self.emo_vec)
             self.ttime += speed
-
-            # Vary with time & emotion
-            self.draw_spiral(self.ttime, color, wobble)
-            self.draw_lissajous(self.ttime, color)
-            self.draw_fractal(self.width//2, self.height-20, -np.pi/2, depth, color)
+            
+            for i in range(3):
+                hue_shift = i * 0.2
+                color = self.get_trippy_color(self.emo_vec)
+                self.draw_kaleido_flower(self.ttime + i * 0.5, self.emo_vec, petals=16, layers=5)
 
             pygame.display.flip()
             await asyncio.sleep(0.001)
