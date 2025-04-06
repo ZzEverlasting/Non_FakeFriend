@@ -1,0 +1,156 @@
+/* General Styles */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1, h2, h3 {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Home Page Styles */
+.home-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+}
+
+.home-page h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.home-page p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+/* Application Page Styles */
+.app-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header {
+    background-color: #6200ea;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+.main-screen, .transcript-screen {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.main-screen {
+    background-color: #ffffff;
+}
+
+.transcript-screen {
+    background-color: #f0f0f0;
+    border-left: 2px solid #ddd;
+}
+
+/* Workspace Styles */
+.workspace-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    width: 90%;
+    max-width: 1200px;
+    height: 80%;
+    border: 5px solid #ccc;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.workspace {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.workspace-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.workspace-buttons button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.transcript-log {
+    flex: 1;
+    border: 1px solid #ccc;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    background-color: #fafafa;
+}
+
+.transcript-log h3 {
+    margin-top: 0;
+    text-align: center;
+}
+
+/* Button Styles */
+button {
+    background-color: #6200ea;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.2rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #3700b3;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .workspace-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .workspace,
+    .transcript-log {
+        width: 100%;
+    }
+}
