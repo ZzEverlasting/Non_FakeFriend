@@ -109,7 +109,7 @@ class LSD:
         text_sentiment_map = {"positive": 1, "neutral": 0.2, "negative": -1}
         hype = audio_sentiment_map[label_audio] * score_audio
         attitude = text_sentiment_map[label_text]  * score_text
-        intensity = abs(attitude) + hype / 2
+        intensity = (abs(attitude) + hype) / 2
         self.upcoming_emo_vec = [hype, attitude, intensity]
     
     #turn emo vec into params for the animation
