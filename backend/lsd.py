@@ -1,9 +1,11 @@
 import pyaudio, pygame
 import numpy as np
-import torch
 import librosa
 import time
 import asyncio
+import soundfile as sf
+import os
+import scipy.signal
 from groq import Groq
 
 from transformers import pipeline
@@ -11,38 +13,58 @@ from transformers import pipeline
 class LSD:
     def __init__(self):
         self.audio = pyaudio.PyAudio()
-        self.stream = self.audio.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=1024)
+        self.rate = 16000
+        self.stream = self.audio.open(format=pyaudio.paInt16, channels=1, rate=self.rate, input=True, frames_per_buffer=1024)
         pygame.init()
-        self.screen = pygame.display.set_mode((640, 480))
+
+        #pygame window
+        self.width, self.height = 640, 480
+        self.screen = pygame.display.set_mode((self.width, self.height))
         self.running = True
 
         #groq client
         self.client = Groq(api_key="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")
+        self.language = 'en'
 
         #audio features
         self.audio_classifier = pipeline("audio-classification", model="superb/wav2vec2-base-superb-er")
-        self.audio_buffer = np.array([], dtype=np.float32)
-        self.rate = 44100
+        self.audio_buffer = np.array([], dtype=np.int16)
 
         self.now_time = time.time()
-        self.interval = 2 # this interval might be too short for not async
+        self.interval = 3 # this interval might be too short for not async
 
 
     async def classify_audio(self, segment):
-        result = self.audio_classifier(segment, sampling_rate=self.rate)
+        filename = "emoTemp.wav"
+        sf.write(filename, segment, self.rate)  # rewrite sample rate
+        result = await asyncio.to_thread(self.audio_classifier, filename, sampling_rate=self.rate)
+        os.remove(filename)
         print(result)
 
     async def classify_content(self, segment):
-        return
+        filename = "temp.wav"
+        sf.write(filename, segment, self.rate)
+        with open(filename, "rb") as file:
+            transcription = await asyncio.to_thread(
+                self.client.audio.transcriptions.create,
+                file=file,
+                model="whisper-large-v3-turbo",
+                language=self.language,
+                timestamp_granularities = ["word", "segment"],
+                response_format="verbose_json",
+            )
+        os.remove(filename)
+        print(transcription.text)
+
 
     async def audio_processing(self):
-        if time.time() - self.now_time > self.interval and len(self.audio_buffer) > self.rate:  #get enough audio to classify
-            segment = self.audio_buffer[-self.rate:]    #get last 44100 samples
+        if len(self.audio_buffer) > self.rate * 10:  #get enough audio to classify
+            segment = self.audio_buffer[-self.rate * 10:]    #get last #RATE samples
             await asyncio.gather(
                 self.classify_audio(segment),
                 self.classify_content(segment)
             )
-            self.now_time = time.time()
+            # self.now_time = time.time()
             self.audio_buffer = []
 
 
@@ -76,4 +98,17 @@ class LSD:
 
 if __name__ == "__main__":
     lsd = LSD()
-    lsd.run()  
+    lsd.run() 
+
+    #test groq client
+    # client = Groq(api_key="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")
+    # with open("Recording.wav", "rb") as file:
+    #         transcription = client.audio.transcriptions.create(
+    #             file=file,
+    #             model="whisper-large-v3-turbo",
+    #             language='en',
+    #             timestamp_granularities = ["word", "segment"],
+    #             response_format="verbose_json",)
+    # print(transcription.text)
+
+     
