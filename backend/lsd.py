@@ -4,7 +4,6 @@ import torch
 import librosa
 import time
 
-from datasets import load_dataset
 from transformers import pipeline
 
 class LSD:
@@ -14,11 +13,18 @@ class LSD:
         pygame.init()
         self.screen = pygame.display.set_mode((640, 480))
         self.running = True
-        self.classifier = pipeline("audio-classification", model="superb/wav2vec2-base-superb-er")
+        self.audio_classifier = pipeline("audio-classification", model="superb/wav2vec2-base-superb-er")
         self.audio_buffer = np.array([], dtype=np.float32)
         self.rate = 44100
         self.now_time = time.time()
-        self.interval = 1.5
+        self.interval = 2 # this interval might be too short for not async
+
+
+    def classify_audio(self):
+        segment = self.audio_buffer[-self.rate:]    #get last 44100 samples
+        result = self.audio_classifier(segment, sampling_rate=self.rate)
+        self.now_time = time.time()
+        print(result)
 
     def run(self):
         while self.running:
@@ -32,10 +38,8 @@ class LSD:
             self.audio_buffer = np.concatenate((self.audio_buffer, audio_data))
 
             if time.time() - self.now_time > self.interval and len(self.audio_buffer) > self.rate:  #get enough audio to classify
-                segment = self.audio_buffer[-self.rate:]    #get last 44100 samples
-                result = self.classifier(segment, sampling_rate=self.rate)
-                self.now_time = time.time()
-                print(result)
+                self.classify_audio(self)
+                self.classify_content(self)
 
             self.screen.fill((0, 0, 0))  # Clear screen
             pygame.display.flip()
@@ -47,7 +51,6 @@ class LSD:
         self.stream.close()
         self.audio.terminate()
         pygame.quit()
-
 
 
 
