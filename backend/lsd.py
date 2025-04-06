@@ -15,7 +15,7 @@ class LSD:
         self.text_model = "cardiffnlp/twitter-roberta-base-sentiment-latest"
         self.language = 'en'
         self.frame = 1024
-        self.width, self.height = 640, 480
+        self.width, self.height = 640, 480  # window size for pygame
         self.hue_shift = 0.0
 
         #tweakables
@@ -102,16 +102,15 @@ class LSD:
         return results
             
 
-
-
     #sentiment 2 vec. add more to the emotion map for fun
     def sentiment2vec(self, label_audio, label_text, score_audio, score_text):
-        audio_sentiment_map = {"ang": 0.9, "hap": 0.6, "sad": 0.1, "neu": 0.3}
+        audio_sentiment_map = {"ang": 0.9, "hap": 0.6, "sad": 0.1, "neu": 0.3}      # basic mapping of audio sentiment to numbers. Not that accurate
         text_sentiment_map = {"positive": 1, "neutral": 0.2, "negative": -1}
         hype = audio_sentiment_map[label_audio] * score_audio
         attitude = text_sentiment_map[label_text]  * score_text
         intensity = (abs(attitude) + hype) / 2
         self.upcoming_emo_vec = [hype, attitude, intensity]
+
 
     ## design specs:
     ## use hsv to convey emotion
@@ -177,6 +176,7 @@ class LSD:
         return int(r * 255), int(g * 255), int(b * 255)
 
 
+    # main loop
     async def run(self):
         while self.running:
             for event in pygame.event.get():
@@ -220,6 +220,7 @@ class LSD:
 
         self.cleanup()
         return
+
 
     def cleanup(self):
         self.stream.stop_stream()
